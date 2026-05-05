@@ -1,0 +1,82 @@
+# QuikTransit — Next.js App
+
+On-demand ride and package delivery app built with Next.js 14, TypeScript, and Tailwind CSS.
+
+## Project Structure
+
+```
+quiktransit/
+├── app/
+│   ├── page.tsx              ← Home screen (choose Customer or Driver)
+│   ├── customer/
+│   │   ├── layout.tsx
+│   │   └── page.tsx          ← Customer booking app
+│   └── driver/
+│       ├── layout.tsx
+│       └── page.tsx          ← Driver dashboard
+├── components/
+│   └── shared/
+│       ├── TopBar.tsx        ← Orange header bar
+│       ├── MapView.tsx       ← OpenStreetMap embed
+│       └── AddressInput.tsx  ← Google Places autocomplete input
+├── lib/
+│   ├── constants.ts          ← Pricing, payment info, types, helpers
+│   └── maps.ts               ← Google Maps loader + Distance Matrix
+├── .env.local                ← Your API keys and business info
+└── README.md
+```
+
+## Quick Start
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Add your Google Maps API key to `.env.local`:
+   ```
+   NEXT_PUBLIC_GOOGLE_MAPS_KEY=AIzaSy...
+   ```
+   Get a free key at https://console.cloud.google.com
+   Enable: Maps JavaScript API, Places API, Distance Matrix API
+
+3. Update your payment handles in `.env.local`:
+   ```
+   NEXT_PUBLIC_PAYPAL=rmusil2@gmail.com
+   NEXT_PUBLIC_PHONE=714-292-1804
+   ```
+
+4. Run the dev server:
+   ```bash
+   npm run dev
+   ```
+   Open http://localhost:3000
+
+## Pages
+
+| URL | Description |
+|-----|-------------|
+| `/` | Home — choose Customer or Driver |
+| `/customer` | Customer booking flow with map, payments, tips |
+| `/driver` | Driver dashboard with requests, tracking, earnings |
+
+## Deploy to Namecheap
+
+1. Build: `npm run build`
+2. The output is in `.next/` — Namecheap shared hosting doesn't support Node.js servers natively.
+3. **Recommended:** Deploy to [Vercel](https://vercel.com) (free tier, made by Next.js team):
+   - Push to GitHub → connect Vercel → auto-deploys on every push
+   - Add env vars in Vercel dashboard
+4. Point your Namecheap domain DNS to Vercel (they have a guide at vercel.com/docs/projects/domains)
+
+## Customizing Pricing
+
+Edit `NEXT_PUBLIC_RATE_PER_MILE` in `.env.local`. The `calcFare()` function in `lib/constants.ts` handles all fare math automatically.
+
+## Next Steps
+
+- [ ] Add Firebase for real-time bookings between customer and driver
+- [ ] Add Stripe for card payments
+- [ ] Add SMS notifications via Twilio
+- [ ] Build a driver signup/login page
+- [ ] Add push notifications for new job requests

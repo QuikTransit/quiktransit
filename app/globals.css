@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand: #E8490F;
+  --brand-dark: #B83508;
+  --brand-light: #FF6B35;
+}
+
+/* Google Places autocomplete dropdown styling */
+.pac-container {
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  font-family: inherit;
+  margin-top: 4px;
+}
+.pac-item {
+  padding: 10px 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.pac-item:hover {
+  background: #f9fafb;
+}
+.pac-item-selected {
+  background: #fff5f2;
+}
+.pac-icon { display: none; }
+.pac-matched { color: #E8490F; font-weight: 500; }
