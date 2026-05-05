@@ -4,10 +4,10 @@ export const SERVICE_FEE   = Number(process.env.NEXT_PUBLIC_SERVICE_FEE)   || 0.
 
 // ── Payment handles ─────────────────────────────────────────────────────────
 export const PAYMENT_INFO = {
-  venmo:   { name: 'Venmo',    handle: process.env.NEXT_PUBLIC_VENMO   || '@QuikTransit',      emoji: '💜' },
-  paypal:  { name: 'PayPal',   handle: process.env.NEXT_PUBLIC_PAYPAL  || 'rmusil2@gmail.com', emoji: '🔵' },
-  zelle:   { name: 'Zelle',    handle: process.env.NEXT_PUBLIC_ZELLE   || '714-292-1804',      emoji: '💜' },
-  cashapp: { name: 'Cash App', handle: process.env.NEXT_PUBLIC_CASHAPP || '$QuikTransit',      emoji: '💚' },
+  venmo:   { name: 'Venmo',    handle: process.env.NEXT_PUBLIC_VENMO   || '',      emoji: '💜' },
+  paypal:  { name: 'PayPal',   handle: process.env.NEXT_PUBLIC_PAYPAL  || '', emoji: '🔵' },
+  zelle:   { name: 'Zelle',    handle: process.env.NEXT_PUBLIC_ZELLE   || '',      emoji: '💜' },
+  cashapp: { name: 'Cash App', handle: process.env.NEXT_PUBLIC_CASHAPP || '',      emoji: '💚' },
 } as const;
 
 export type PayMethod = keyof typeof PAYMENT_INFO;
