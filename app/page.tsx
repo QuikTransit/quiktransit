@@ -11,7 +11,7 @@ export default function Home() {
           <p className="text-gray-500 mt-2 text-sm">On-demand rides & package delivery</p>
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 mb-8">
           <Link href="/customer">
             <div className="bg-[#E8490F] text-white rounded-xl p-5 flex items-center gap-4 cursor-pointer hover:bg-[#B83508] transition-colors">
               <span className="text-3xl">🚗</span>
@@ -21,7 +21,6 @@ export default function Home() {
               </div>
             </div>
           </Link>
-
           <Link href="/driver">
             <div className="bg-gray-900 text-white rounded-xl p-5 flex items-center gap-4 cursor-pointer hover:bg-gray-800 transition-colors">
               <span className="text-3xl">🧑‍✈️</span>
@@ -33,10 +32,9 @@ export default function Home() {
           </Link>
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-8">
-          (714) 292-1804 · quiktransit.com
-        </p>
-      </div>
-    </main>
-  );
-}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">Contact Us</h2>
+          <p className="text-sm text-gray-500 mb-4">Have a question? We'll get back to you fast.</p>
+          <form name="contact" method="POST" data-netlify="true" action="/success">
+            <input type="hidden" name="form-name" value="contact" />
+            <div
