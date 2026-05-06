@@ -184,10 +184,9 @@ export default function CustomerPage() {
                 ))}
               </div>
 
-              <button disabled={!fromAddr || !toAddr || miles <= 0} onClick={() => setStage('confirm')}
+              <button disabled={!fromAddr || !toAddr || } onClick={() => setStage('confirm')}
                 className="w-full bg-[#E8490F] text-white rounded-lg py-3.5 font-medium text-base disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#B83508] transition-colors">
-                {fromAddr && toAddr && miles > 0 ? 'Review Booking →' : 'Enter addresses to continue'}
-              </button>
+{fromAddr && toAddr ? 'Review Booking →' : 'Enter addresses to continue'}              </button>
             </div>
           </>
         )}
