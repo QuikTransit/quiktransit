@@ -25,11 +25,14 @@ export default function CustomerPage() {
   const [toCoords, setToCoords]     = useState<{ lat: number; lng: number } | null>(null);
   const [miles, setMiles]       = useState(0);
   const [minutes, setMinutes]   = useState(0);
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [bookingId, setBookingId] = useState<string | null>(null);
   const [trackStep, setTrackStep] = useState(0);
   const [history, setHistory]     = useState<Booking[]>([]);
   const trackTimerRef             = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const fare = calcFare(miles);
+  const fare = calcFare(miles > 0 ? miles : 5);
 
   const afterBothAddrs = useCallback(async (
     fCoords: { lat: number; lng: number },
@@ -40,8 +43,9 @@ export default function CustomerPage() {
       setMiles(result.miles);
       setMinutes(result.minutes);
     } catch {
-      setMiles(Math.round((Math.random() * 16 + 2) * 10) / 10);
-      setMinutes(Math.round(miles * 2.8 + 4));
+      const randomMiles = Math.round((Math.random() * 16 + 2) * 10) / 10;
+      setMiles(randomMiles);
+      setMinutes(Math.round(randomMiles * 2.8 + 4));
     }
   }, []);
 
@@ -61,20 +65,24 @@ export default function CustomerPage() {
   }
 
   async function confirmBooking() {
-    const bookingId = await createBooking({
+    const id = await createBooking({
       type: bookType,
       fromAddress: fromAddr,
       toAddress: toAddr,
-      miles,
-      minutes,
+      miles: miles > 0 ? miles : 5,
+      minutes: minutes > 0 ? minutes : 15,
       total: fare.total,
       payMethod,
-      customerName: '',
-      customerPhone: '',
+      customerName,
+      customerPhone,
     });
+    setBookingId(id);
     setStage('tracking');
     setTab('track');
-    listenToBooking(bookingId, (booking) => {
+    listenToBooking(id, (booking) => {
+      if (booking.status === 'accepted') setTrackStep(1);
+      if (booking.status === 'en_route') setTrackStep(1);
+      if (booking.status === 'arrived') setTrackStep(2);
       if (booking.status === 'complete') {
         setStage('tip');
         setTab('book');
@@ -90,8 +98,8 @@ export default function CustomerPage() {
       status: 'complete',
       fromAddress: fromAddr,
       toAddress: toAddr,
-      miles,
-      minutes,
+      miles: miles > 0 ? miles : 5,
+      minutes: minutes > 0 ? minutes : 15,
       baseFare: fare.base,
       serviceFee: fare.fee,
       tip,
@@ -109,6 +117,8 @@ export default function CustomerPage() {
     setFromCoords(null); setToCoords(null);
     setMiles(0); setMinutes(0);
     setTip('$2'); setCustomTip('');
+    setCustomerName(''); setCustomerPhone('');
+    setBookingId(null); setTrackStep(0);
   }
 
   const steps   = bookType === 'ride' ? ['Confirmed', 'En Route', 'Arrived'] : ['Confirmed', 'Picked Up', 'Delivered'];
@@ -163,12 +173,15 @@ export default function CustomerPage() {
 
               {bookType === 'ride' ? (
                 <>
-                  <input placeholder="Your name" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm mb-3 outline-none focus:border-[#E8490F]" />
-                  <input placeholder="Phone number" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm mb-4 outline-none focus:border-[#E8490F]" />
+                  <input placeholder="Your name" value={customerName} onChange={e => setCustomerName(e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm mb-3 outline-none focus:border-[#E8490F]" />
+                  <input placeholder="Phone number" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm mb-4 outline-none focus:border-[#E8490F]" />
                 </>
               ) : (
                 <>
-                  <input placeholder="Recipient name" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm mb-3 outline-none focus:border-[#E8490F]" />
+                  <input placeholder="Recipient name" value={customerName} onChange={e => setCustomerName(e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm mb-3 outline-none focus:border-[#E8490F]" />
                   <textarea placeholder="Package notes" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm mb-4 outline-none focus:border-[#E8490F] h-16 resize-none" />
                 </>
               )}
@@ -203,7 +216,7 @@ export default function CustomerPage() {
               </div>
               <div className="bg-gray-50 rounded-lg p-4 mb-4 space-y-2">
                 <div className="flex justify-between text-sm text-gray-500">
-                  <span>{miles.toFixed(1)} miles · {minutes} min</span><span>—</span>
+                  <span>{miles > 0 ? miles.toFixed(1) : '~5'} miles · {minutes > 0 ? minutes : '~15'} min</span><span>—</span>
                 </div>
                 <div className="flex justify-between font-medium pt-2 border-t border-gray-200">
                   <span>Estimated total</span><span>{formatCurrency(fare.total)}</span>
@@ -224,6 +237,44 @@ export default function CustomerPage() {
               </button>
             </div>
           </>
+        )}
+
+        {tab === 'track' && stage === 'tracking' && (
+          <div className="p-5">
+            <div className="border-2 border-[#E8490F] rounded-xl p-4 mb-4">
+              <div className="text-xs font-medium text-[#E8490F] tracking-wider mb-1">ACTIVE BOOKING</div>
+              <div className="font-medium text-base mb-0.5">{bookType === 'ride' ? '🚗 Ride' : '📦 Package'}</div>
+              <div className="text-sm text-gray-500 mb-4">{fromAddr} → {toAddr}</div>
+              <div className="flex items-center mb-4">
+                {steps.map((s, i) => (
+                  <div key={i} className="flex items-center flex-1">
+                    <div className="flex flex-col items-center flex-1">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mb-1 ${i < trackStep ? 'bg-[#E8490F] text-white' : i === trackStep ? 'border-2 border-[#E8490F] text-[#E8490F] font-medium' : 'bg-gray-100 text-gray-400'}`}>
+                        {i < trackStep ? '✓' : i + 1}
+                      </div>
+                      <div className={`text-xs ${i <= trackStep ? 'text-[#E8490F] font-medium' : 'text-gray-400'}`}>{s}</div>
+                    </div>
+                    {i < steps.length - 1 && <div className={`h-px flex-1 mb-4 ${i < trackStep ? 'bg-[#E8490F]' : 'bg-gray-200'}`} />}
+                  </div>
+                ))}
+              </div>
+              <div className="text-center text-sm text-gray-500">
+                {trackStep === 0 ? '⏳ Waiting for driver to accept...' : trackStep === 1 ? '🚗 Driver is on the way!' : '📍 Driver has arrived!'}
+              </div>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-500 space-y-1">
+              <div><span className="font-medium text-gray-800">From:</span> {fromAddr}</div>
+              <div><span className="font-medium text-gray-800">To:</span> {toAddr}</div>
+              <div><span className="font-medium text-gray-800">Total:</span> {formatCurrency(fare.total)}</div>
+            </div>
+          </div>
+        )}
+
+        {tab === 'track' && stage !== 'tracking' && (
+          <div className="flex flex-col items-center justify-center p-8 text-center text-gray-400 pt-16">
+            <div className="text-4xl mb-3">📍</div>
+            <p className="text-sm leading-relaxed">No active booking.<br/>Book a ride or delivery to track it here.</p>
+          </div>
         )}
 
         {tab === 'book' && stage === 'tip' && (
@@ -301,13 +352,6 @@ export default function CustomerPage() {
           </div>
         )}
 
-        {tab === 'track' && (
-          <div className="flex flex-col items-center justify-center p-8 text-center text-gray-400 pt-16">
-            <div className="text-4xl mb-3">📍</div>
-            <p className="text-sm leading-relaxed">No active booking.<br/>Book a ride or delivery to track it here.</p>
-          </div>
-        )}
-
         {tab === 'history' && history.length === 0 && (
           <div className="flex flex-col items-center justify-center p-8 text-center text-gray-400 pt-16">
             <div className="text-4xl mb-3">🧾</div>
@@ -321,7 +365,7 @@ export default function CustomerPage() {
               <div key={b.id} className="flex justify-between items-center py-3">
                 <div>
                   <div className="text-xs text-gray-400 uppercase">{b.type} · {b.miles.toFixed(1)} mi</div>
-                  <div className="text-sm text-gray-800 my-0.5">Marcus R.</div>
+                  <div className="text-sm text-gray-800 my-0.5">{customerName || 'Customer'}</div>
                   <div className="text-xs text-gray-400">{new Date(b.createdAt).toLocaleDateString()}</div>
                 </div>
                 <div className="text-right">
