@@ -75,10 +75,27 @@ export default function CustomerPage() {
     }, 5000);
   }
 
-  function confirmBooking() {
-    setStage('tracking');
-    setTab('track');
-    startTracking();
+  async function confirmBooking() {
+  const bookingId = await createBooking({
+    type: bookType,
+    fromAddress: fromAddr,
+    toAddress: toAddr,
+    miles,
+    minutes,
+    total: fare.total,
+    payMethod,
+    customerName: '',
+    customerPhone: '',
+  });
+  setStage('tracking');
+  setTab('track');
+  listenToBooking(bookingId, (booking) => {
+    if (booking.status === 'complete') {
+      setStage('tip');
+      setTab('book');
+    }
+  });
+}
   }
 
   function markPaid() {
