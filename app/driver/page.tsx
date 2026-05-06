@@ -121,7 +121,7 @@ export default function DriverPage() {
       <div className="bg-[#E8490F] text-white px-5 pt-4 pb-3">
         <div className="flex justify-between items-center">
           <h1 className="text-lg font-medium">QuikTransit Driver</h1>
-          <button onClick={() => setOnline(o => !o)}
+          <button onClick={async () => { const next = !online; setOnline(next); if (next) { const { requestNotificationPermission } = await import('../../lib/bookings'); await requestNotificationPermission(); } }}>
             className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1 text-xs font-medium">
             <span className={`w-2 h-2 rounded-full ${online ? 'bg-green-400' : 'bg-white/50'}`} />
             {online ? 'Online' : 'Offline'}

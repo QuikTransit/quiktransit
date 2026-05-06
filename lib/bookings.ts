@@ -62,3 +62,23 @@ export function listenToBooking(bookingId: string, callback: (booking: Booking) 
     if (snap.exists()) callback({ id: snap.id, ...snap.data() } as Booking);
   });
 }
+// Request notification permission and get FCM token
+export async function requestNotificationPermission(): Promise<string | null> {
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return null;
+
+    const { messaging } = await import('./firebase');
+    const { getToken } = await import('firebase/messaging');
+    const m = await messaging();
+    if (!m) return null;
+
+    const token = await getToken(m, {
+      vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+    });
+    return token;
+  } catch (err) {
+    console.error('Notification permission error:', err);
+    return null;
+  }
+}
