@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency } from '@/lib/constants';
-
+import { listenForPendingBookings, updateBookingStatus } from '@/lib/bookings';
 type Tab = 'requests' | 'active' | 'earnings' | 'history';
 
 interface Request {
@@ -43,6 +43,23 @@ export default function DriverPage() {
   const reqTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onlineStart = useRef(Date.now());
 
+  useEffect(() => {
+  if (!online) return;
+  const unsubscribe = listenForPendingBookings((firebaseBookings) => {
+    const mapped = firebaseBookings.map(b => ({
+      id: b.id || '',
+      type: b.type,
+      name: b.type === 'ride' ? 'Customer Ride' : 'Package Delivery',
+      from: b.fromAddress,
+      to: b.toAddress,
+      miles: `${b.miles} mi`,
+      eta: `${b.minutes} min`,
+      earn: b.total,
+    }));
+    setRequests(mapped);
+  });
+  return () => unsubscribe();
+}, [online]);
   useEffect(() => {
     const t = setInterval(() => setOnlineMs(Date.now() - onlineStart.current), 15000);
     return () => clearInterval(t);
