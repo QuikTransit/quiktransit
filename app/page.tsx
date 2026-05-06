@@ -33,8 +33,7 @@ export default function Home() {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 mb-1">Contact Us</h2>
           <p className="text-sm text-gray-500 mb-4">Have a question? We'll get back to you fast.</p>
-         <form action="https://formspree.io/f/mjglrwdr" method="POST">
-            <div className="flex flex-col gap-3">
+<form action="https://formspree.io/f/mjglrwdr" method="POST" onSubmit={(e) => { e.preventDefault(); const form = e.target as HTMLFormElement; fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } }).then(() => { form.reset(); alert('Message sent! We will get back to you soon.'); }); }}>            <div className="flex flex-col gap-3">
               <input type="text" name="name" placeholder="Your name" required className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#E8490F]" />
               <input type="tel" name="phone" placeholder="Your phone number" className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#E8490F]" />
               <select name="service" required className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#E8490F] text-gray-600">
