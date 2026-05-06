@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { formatCurrency } from '@/lib/constants';
-import { listenForPendingBookings, updateBookingStatus } from '@/lib/bookings';
+import { listenForPendingBookings, requestNotificationPermission } from '@/lib/bookings';
 type Tab = 'requests' | 'active' | 'earnings' | 'history';
 
 interface Request {
@@ -26,8 +26,8 @@ const SAMPLE_REQUESTS: Request[] = [
   { id:'4', type:'package', name:'Package for David K.',from:'QuikTransit Hub, Santa Ana',    to:'555 N Harbor Blvd, Fullerton',     miles:'5.5 mi', eta:'8 min', earn:13.25 },
 ];
 
-const WEEK_DAYS    = ['M','T','W','T','F','S','S'];
-const WEEK_SEED    = [42, 87, 63, 110, 95, 78, 0];
+const WEEK_DAYS = ['M','T','W','T','F','S','S'];
+const WEEK_SEED = [42, 87, 63, 110, 95, 78, 0];
 
 export default function DriverPage() {
   const [tab, setTab]           = useState<Tab>('requests');
@@ -44,22 +44,23 @@ export default function DriverPage() {
   const onlineStart = useRef(Date.now());
 
   useEffect(() => {
-  if (!online) return;
-  const unsubscribe = listenForPendingBookings((firebaseBookings) => {
-    const mapped = firebaseBookings.map(b => ({
-      id: b.id || '',
-      type: b.type,
-      name: b.type === 'ride' ? 'Customer Ride' : 'Package Delivery',
-      from: b.fromAddress,
-      to: b.toAddress,
-      miles: `${b.miles} mi`,
-      eta: `${b.minutes} min`,
-      earn: b.total,
-    }));
-    setRequests(mapped);
-  });
-  return () => unsubscribe();
-}, [online]);
+    if (!online) return;
+    const unsubscribe = listenForPendingBookings((firebaseBookings) => {
+      const mapped = firebaseBookings.map(b => ({
+        id: b.id || '',
+        type: b.type,
+        name: b.type === 'ride' ? 'Customer Ride' : 'Package Delivery',
+        from: b.fromAddress,
+        to: b.toAddress,
+        miles: `${b.miles} mi`,
+        eta: `${b.minutes} min`,
+        earn: b.total,
+      }));
+      setRequests(mapped);
+    });
+    return () => unsubscribe();
+  }, [online]);
+
   useEffect(() => {
     const t = setInterval(() => setOnlineMs(Date.now() - onlineStart.current), 15000);
     return () => clearInterval(t);
@@ -70,6 +71,14 @@ export default function DriverPage() {
     scheduleRequest();
     return () => clearTimeout(reqTimerRef.current!);
   }, [online, requests]);
+
+  async function handleToggleOnline() {
+    const next = !online;
+    setOnline(next);
+    if (next) {
+      await requestNotificationPermission();
+    }
+  }
 
   function scheduleRequest() {
     clearTimeout(reqTimerRef.current!);
@@ -121,7 +130,8 @@ export default function DriverPage() {
       <div className="bg-[#E8490F] text-white px-5 pt-4 pb-3">
         <div className="flex justify-between items-center">
           <h1 className="text-lg font-medium">QuikTransit Driver</h1>
-          <button onClick={async () => { const next = !online; setOnline(next); if (next) { const { requestNotificationPermission } = await import('../../lib/bookings'); await requestNotificationPermission(); } }}>
+          <button
+            onClick={handleToggleOnline}
             className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1 text-xs font-medium">
             <span className={`w-2 h-2 rounded-full ${online ? 'bg-green-400' : 'bg-white/50'}`} />
             {online ? 'Online' : 'Offline'}
